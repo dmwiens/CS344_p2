@@ -31,11 +31,12 @@ struct Room {
 
 // Function Prototypes
 void SelectRoomNames(struct Room*, const char**);
-
+void PopulateRoomConnections(struct Room*);
+void ConnectRooms(struct Room* x, struct Room* y);
 
 int main()
 {   
-    int i;
+    int i, j, k;
 
     
     // Declare and set up (hardcode) 10 room names
@@ -59,9 +60,13 @@ int main()
     // Declare the rooms
     struct Room rooms[NUM_ROOMS]; 
 
-    // Allocate memory for room names
+    // Initialize room structs
     for (i = 0; i < NUM_ROOMS; i++) {
+        // Allocate memory for room names
         rooms[i].name = calloc(MAX_ROOM_NAME_LENGTH, sizeof(char));
+
+        // Initialize connections
+        rooms[i].numConnections = 0;
     }
 
     // Select room names from list of 10 randomly to populate the 7 rooms
@@ -74,11 +79,24 @@ int main()
     }
 
 
-
-
     // Populate network of rooms' connections
+    //PopulateRoomConnections(rooms);
 
 
+    ConnectRooms(&rooms[1], &rooms[2]);
+    ConnectRooms(&rooms[1], &rooms[3]);
+    ConnectRooms(&rooms[1], &rooms[6]);
+
+
+    // TESTING: Print out room and connections
+    for (i = 0; i < NUM_ROOMS; i++) {
+        printf("Room%i \"%s\" has %i connections.\n", i, rooms[i].name, rooms[i].numConnections);
+
+        for (j = 0; j < rooms[i].numConnections; j++) {
+            printf("  %i \"%s\"\n", j, rooms[i].outboundConnections[j]->name);
+        }
+
+    }
 
 
     return 0;
@@ -135,4 +153,43 @@ void SelectRoomNames(struct Room* roomsToAssign, const char** possibleNames){
 
 
     return;
+}
+
+
+
+
+/******************************************************************************
+Name: PopulateRoomConnections
+Desc: Given the rooms array and the array of possible names, randomly assign
+a unique possible name to each room.
+******************************************************************************/
+void PopulateRoomConnections(struct Room* roomsToPopulate){
+
+    ;
+
+
+}
+
+
+// Connects Rooms x and y together, does not check if this connection is valid
+void ConnectRooms(struct Room* x, struct Room* y) 
+{
+    int xNextConnID, yNextConnID;
+
+    // Get index of next connection
+    xNextConnID = x->numConnections;
+    yNextConnID = y->numConnections;
+
+    // Allocate space for new Room pointer
+    x->outboundConnections[xNextConnID] = malloc(sizeof(struct Room*));
+    y->outboundConnections[yNextConnID] = malloc(sizeof(struct Room*));
+
+    // Set room pointers to
+    x->outboundConnections[xNextConnID] = y;
+    y->outboundConnections[yNextConnID] = x;
+    
+    // Increment count on both
+    x->numConnections = x->numConnections + 1;
+    y->numConnections = y->numConnections + 1;
+
 }
