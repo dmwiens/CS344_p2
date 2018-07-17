@@ -10,6 +10,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MAX_ROOM_NAME_LENGTH 8
 #define NUM_POSSIBLE_ROOM_NAMES 10
@@ -29,58 +30,45 @@ struct Room {
 
 
 // Function Prototypes
-void SelectRoomNames(struct Room*, char**);
+void SelectRoomNames(struct Room*, const char**);
 
 
 int main()
-{
+{   
+    int i;
+
     
     // Declare and set up (hardcode) 10 room names
     // Reference 1: https://stackoverflow.com/questions/1088622/how-do-i-create-an-array-of-strings-in-c
     // Reference 2: https://stackoverflow.com/questions/13501579/2d-array-using-strings
-    char possibleRoomNames[NUM_POSSIBLE_ROOM_NAMES][MAX_ROOM_NAME_LENGTH];
+    const char* possibleRoomNames[NUM_POSSIBLE_ROOM_NAMES];
 
     // Set values for possible room names
-    strcpy(possibleRoomNames[0], "Dungeon");
-    strcpy(possibleRoomNames[1], "Kitchen");
-    strcpy(possibleRoomNames[2], "Armory");
-    strcpy(possibleRoomNames[3], "Pantry");
-    strcpy(possibleRoomNames[4], "Loo");
-    strcpy(possibleRoomNames[5], "Hallway");
-    strcpy(possibleRoomNames[6], "Stairs");
-    strcpy(possibleRoomNames[7], "Foyer");
-    strcpy(possibleRoomNames[8], "Lobby");
-    strcpy(possibleRoomNames[9], "Pit");
+    possibleRoomNames[0] = "Dungeon";
+    possibleRoomNames[1] = "Kitchen";
+    possibleRoomNames[2] = "Armory";
+    possibleRoomNames[3] = "Pantry";
+    possibleRoomNames[4] = "Loo";
+    possibleRoomNames[5] = "Hallway";
+    possibleRoomNames[6] = "Stairs";
+    possibleRoomNames[7] = "Foyer";
+    possibleRoomNames[8] = "Lobby";
+    possibleRoomNames[9] = "Pit";
 
     
     // Declare the rooms
     struct Room rooms[NUM_ROOMS]; 
 
-    int i;
+    // Allocate memory for room names
     for (i = 0; i < NUM_ROOMS; i++) {
-        rooms[i].name = calloc(8, sizeof(char));
-        strcpy(rooms[i].name, possibleRoomNames[i]);
+        rooms[i].name = calloc(MAX_ROOM_NAME_LENGTH, sizeof(char));
     }
 
     // Select room names from list of 10 randomly to populate the 7 rooms
-    //void SelectRoomNames(rooms, possibleRoomNames);
-    
-    /*
-    // Test hard code room names
-    strcpy(&rooms[0].name, "Dungeon");
-    strcpy(&rooms[1].name, "Kitchen");
-    strcpy(&rooms[2].name, "Armory");
-    strcpy(&rooms[3].name, "Pantry");
-    strcpy(&rooms[4].name, "Loo");
-    strcpy(&rooms[5].name, "Hallway");
-    strcpy(&rooms[6].name, "Stairs");
-    */
-
+    SelectRoomNames(rooms, possibleRoomNames);
     
 
-
-    // test room names
-
+    // TESTING: Print out room names
     for (i = 0; i < NUM_ROOMS; i++) {
         printf("Room%i is named \"%s\"\n", i, rooms[i].name);
     }
@@ -88,6 +76,7 @@ int main()
 
 
 
+    // Populate network of rooms' connections
 
 
 
@@ -97,15 +86,51 @@ int main()
 }
 
 
-void SelectRoomNames(struct Room* roomsToAssign, char** possibleNames){
+/******************************************************************************
+Name: SelectRoomNames
+Desc: Given the rooms array and the array of possible names, randomly assign
+a unique possible name to each room.
+******************************************************************************/
+void SelectRoomNames(struct Room* roomsToAssign, const char** possibleNames){
 
-    int nameUsed[NUM_POSSIBLE_ROOM_NAMES];
-    int i;
+    int nameUsed[NUM_POSSIBLE_ROOM_NAMES] = {0};
+    int i, j, valAssigned = 0;
+    time_t t;
 
+
+    // initialize randomizer
+    // Reference: https://www.tutorialspoint.com/c_standard_library/c_function_rand.htm
+    srand((unsigned) time(&t));
+
+    // For each room, get a random index of a possible room.
+    // Only assign it and move on if the possible room name is not yet used.
     for (i = 0; i < NUM_ROOMS; i++) {
+        
+        //printf("Assigning name to room %i\n", i);
 
-        strcpy(&roomsToAssign[i].name, possibleNames[i]);
+        valAssigned = 0;
+        while (valAssigned==0){
 
+            j = rand() % NUM_POSSIBLE_ROOM_NAMES;
+
+            // Only copy if name is not used
+            if (nameUsed[j] == 0){
+                
+                // Copy from possible names array to iterated room
+                strcpy(roomsToAssign[i].name, possibleNames[j]);
+
+                // Set flags to continue loops
+                nameUsed[j] = 1;
+                valAssigned = 1;
+
+                //printf("name assigned. %i %i \n", i, j);
+            } else {
+                ;
+                //printf("j already used. %i %i \n", i, j);
+            }
+
+        }
+        
     }
 
 
