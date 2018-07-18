@@ -33,7 +33,7 @@ struct Room {
 void SelectRoomNames(struct Room*, const char**);
 void PopulateRoomConnections(struct Room*);
 void ConnectRooms(struct Room* x, struct Room* y);
-//int IsGraphFull(struct Room* rooms);
+int IsGraphFull(struct Room* rooms);
 
 int main()
 {   
@@ -85,8 +85,19 @@ int main()
 
 
     ConnectRooms(&rooms[1], &rooms[2]);
-    ConnectRooms(&rooms[1], &rooms[3]);
-    ConnectRooms(&rooms[1], &rooms[6]);
+    ConnectRooms(&rooms[2], &rooms[3]);
+    ConnectRooms(&rooms[3], &rooms[4]);
+    ConnectRooms(&rooms[4], &rooms[5]);
+    ConnectRooms(&rooms[5], &rooms[6]);
+    ConnectRooms(&rooms[6], &rooms[1]);
+    
+    ConnectRooms(&rooms[1], &rooms[4]);    
+    ConnectRooms(&rooms[2], &rooms[5]);
+    ConnectRooms(&rooms[3], &rooms[6]);
+
+    ConnectRooms(&rooms[0], &rooms[1]);    
+    ConnectRooms(&rooms[0], &rooms[2]);
+    ConnectRooms(&rooms[0], &rooms[3]);
 
 
     // TESTING: Print out room and connections
@@ -98,6 +109,10 @@ int main()
         }
 
     }
+
+
+    // Testing: Print is graph full
+    printf("Graph Fullness: %i\n", IsGraphFull(rooms));
 
 
     return 0;
@@ -195,7 +210,7 @@ void ConnectRooms(struct Room* x, struct Room* y)
 
 }
 
-/*
+
 // Returns true if all rooms have 3 to 6 outbound connections, false otherwise
 int IsGraphFull(struct Room* rooms)  
 {
@@ -210,4 +225,4 @@ int IsGraphFull(struct Room* rooms)
 
     return 1;
 
-}*/
+}
