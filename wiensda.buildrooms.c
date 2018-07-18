@@ -33,7 +33,6 @@ struct Room {
 void SelectRoomNames(struct Room*, const char**);
 void PopulateRoomConnections(struct Room*);
 void ConnectRooms(struct Room* x, struct Room* y);
-//int IsGraphFull(struct Room* rooms);
 
 int main()
 {   
@@ -194,20 +193,3 @@ void ConnectRooms(struct Room* x, struct Room* y)
     y->numConnections = y->numConnections + 1;
 
 }
-
-/*
-// Returns true if all rooms have 3 to 6 outbound connections, false otherwise
-int IsGraphFull(struct Room* rooms)  
-{
-    int i = 0;
-
-    // If ANY room has less than three connections, return false
-    for (i = 0; i < NUM_ROOMS; i++) {
-        if (rooms[i].numConnections < 3) {
-            return 0;
-        }
-    }
-
-    return 1;
-
-}*/
