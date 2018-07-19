@@ -41,11 +41,12 @@ int ConnectionExists(struct Room* roomA, struct Room* roomB);
 int IsGraphFull(struct Room* rooms);
 int CanConnect(struct Room* room);
 void MakeRoomFile(struct Room* room, char* dir);
+void FreeRoomMem(struct Room* rooms);
 
 int main()
 {   
     int i, j, k;
-
+    char dirName[32];
     
     // Declare and set up (hardcode) 10 room names
     // Reference 1: https://stackoverflow.com/questions/1088622/how-do-i-create-an-array-of-strings-in-c
@@ -84,18 +85,19 @@ int main()
     // Assigne Room Types
     AssignRoomTypes(rooms);
 
-
+    /*
     // TESTING: Print out room names
     for (i = 0; i < NUM_ROOMS; i++) {
         printf("Room%i is named \"%s\" of type %i\n", i, rooms[i].name, rooms[i].type);
     }
-
+    */
 
     // Populate network of rooms' connections
     PopulateRoomConnections(rooms);
 
-    // Testing: create full graph
+
     /*
+    // Testing: create full graph
     ConnectRooms(&rooms[1], &rooms[2]);
     ConnectRooms(&rooms[2], &rooms[3]);
     ConnectRooms(&rooms[3], &rooms[4]);
@@ -111,7 +113,7 @@ int main()
     */
 
 
-
+    /*
     // TESTING: Print out room and connections
     for (i = 0; i < NUM_ROOMS; i++) {
         printf("Room%i \"%s\" has %i connections.\n", i, rooms[i].name, rooms[i].numConnections);
@@ -121,31 +123,34 @@ int main()
         }
 
     }
+    */
 
 
     // Testing: Print is graph full
-    printf("Graph Fullness: %i\n", IsGraphFull(rooms));
-
+    //printf("Graph Fullness: %i\n", IsGraphFull(rooms));
 
 
     // Get current process id
     pid_t pid = getpid();
 
     // Testing : print process id
-    printf("The process id is: %i\n", pid);
+    //printf("The process id is: %i\n", pid);
 
 
     // Create directory
     // Reference: https://oregonstate.instructure.com/courses/1683586/pages/2-dot-4-manipulating-directories
-    char dirName[32];
     sprintf(dirName, "wiensda.rooms.%d", pid);
     int mkdirResult = mkdir(dirName, 0755);
 
-    
+
     //Make Room File for each room
     for (i = 0; i < NUM_ROOMS; i++) {
         MakeRoomFile(&rooms[i], dirName);
     }
+
+
+    // Clean up rooms
+    FreeRoomMem(rooms);
 
 
     return 0;
@@ -323,10 +328,6 @@ void ConnectRooms(struct Room* x, struct Room* y)
     xNextConnID = x->numConnections;
     yNextConnID = y->numConnections;
 
-    // Allocate space for new Room pointer
-    x->outboundConnections[xNextConnID] = malloc(sizeof(struct Room*));
-    y->outboundConnections[yNextConnID] = malloc(sizeof(struct Room*));
-
     // Set room pointers to
     x->outboundConnections[xNextConnID] = y;
     y->outboundConnections[yNextConnID] = x;
@@ -363,7 +364,7 @@ int IsGraphFull(struct Room* rooms)
 
 /******************************************************************************
 Name: MakeRoomFile
-Desc: Makes 
+Desc: Makes a file for each room struct
 ******************************************************************************/ 
 void MakeRoomFile(struct Room* room, char* dir)  
 {
@@ -421,5 +422,24 @@ void MakeRoomFile(struct Room* room, char* dir)
 
 
     return;
+
+}
+
+
+
+
+
+/******************************************************************************
+Name: FreeRoomMem
+Desc: Makes 
+******************************************************************************/ 
+void FreeRoomMem(struct Room* rooms)
+{
+    int i;
+
+    for (i = 0; i < NUM_ROOMS; i++) {
+        // Free room name
+        free(rooms[i].name);
+    }
 
 }
