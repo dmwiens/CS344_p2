@@ -18,6 +18,8 @@
 #define NUM_POSSIBLE_ROOM_NAMES 10
 #define NUM_ROOMS 7
 #define MAX_OUTBOUND_CONNECTIONS 6
+#define MAX_LOG_ENTRIES 100
+
 
 // Declare room type enumerator
 enum ROOM_TYPE {START_ROOM, MID_ROOM, END_ROOM};
@@ -30,6 +32,10 @@ struct Room {
     int numConnections;
 };
 
+struct Log {
+    int numLogs;
+    struct Room* stepLog[MAX_LOG_ENTRIES];
+};
 
 // Function Prototypes
 void SelectRoomNames(struct Room*, const char**);
@@ -46,13 +52,21 @@ void FreeRoomMem(struct Room* rooms);
 struct Room* GetStartRoom(struct Room* rooms);
 void PrintCurrentRoom(struct Room* room);
 char* GetWhereToFromUser();
-int GetIDOfEnteredRoom(struct Room* rooms, char* entry);
+int IsValidOutboundConnections(struct Room* curRoom, char* entry);
+struct Room* GetEnteredRoomRef(struct Room* rooms, char* entry);
+void AddStepToLog(struct Log*, struct Room* room);
+void PrintStepLog(struct Log*);
 
 int main()
 {   
     int i, j, k;
     char dirName[32];
-    
+
+    // Declare log file
+    struct Log stepLog;
+    stepLog.numLogs = 0;
+
+
     // Declare and set up (hardcode) 10 room names
     // Reference 1: https://stackoverflow.com/questions/1088622/how-do-i-create-an-array-of-strings-in-c
     // Reference 2: https://stackoverflow.com/questions/13501579/2d-array-using-strings
@@ -133,51 +147,65 @@ int main()
 
 
 
-    struct Room* curRoom;
+
+
+
 
 
     // Initialize currentRoom at Start Room
+    struct Room* curRoom;
     curRoom = GetStartRoom(rooms);
 
     // Testing: print start room
     printf("The Start Room is: %s\n", curRoom->name);
 
 
-    PrintCurrentRoom(curRoom);
+    // Number of steps
+    int numberOfSteps = 0;
 
 
-    char* entry;
-    
-    entry = GetWhereToFromUser();
+    // Loop until the end room is reached
+    while (curRoom->type != END_ROOM)
+    {
+        // Print the current room and the possible connections
+        PrintCurrentRoom(curRoom);
+
+        // Get User Entry
+        char* entry;
+        entry = GetWhereToFromUser();
+
+        // Testing: print user entry
+        // printf("The user entered: %s\n", entry);
 
 
-    printf("The user entered: %s\n", entry);
+        // Evaluate entry
+        if (IsValidOutboundConnections(curRoom, entry))
+        {
+            // Entry valid, get new current room
+            curRoom = GetEnteredRoomRef(rooms, entry);
+
+            // Increment steps and add new room to log
+            numberOfSteps++;
+            AddStepToLog(&stepLog, curRoom);
+        } 
+        else 
+        {
+            // Entry invalid, print out error message to user
+            printf("\nHUH? I DON’T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
+        }
+
+        // Free entry memory
+        free(entry);
+    }
 
 
-    int roomID;
-    roomID = GetIDOfEnteredRoom(rooms, entry);
-
-    printf("Returned RoomID was: %d\n", roomID);
+    // Print out congratulations
+    printf("\nYOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
 
 
-    free(entry);
-
-    //while (curRoom->type != END_ROOM)
-    //{
-        //;
-
-
-
-
-
-
-
-
-    //}
-
-
-
-
+    // Print Step summary
+    printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", numberOfSteps);
+    PrintStepLog(&stepLog);
 
     // Clean up rooms
     FreeRoomMem(rooms);
@@ -521,7 +549,7 @@ void PrintCurrentRoom(struct Room* curRoom)
     int i;
 
     // Print room name
-    printf("CURRENT LOCATION: %s\n", curRoom->name);
+    printf("\nCURRENT LOCATION: %s\n", curRoom->name);
 
     // Print each possible connection
     printf("POSSIBLE CONNECTIONS: ");
@@ -582,23 +610,79 @@ char* GetWhereToFromUser()
 
 
 /******************************************************************************
-Name: GetIDOfEnteredRoom
-Desc: Returns the index of the room that matches the user entry. If no match,
-    -1 is returned.
+Name: IsValidOutboundConnections
+Desc: Return 1 if entry matches a valid outbound connections. 0 if not
 ******************************************************************************/ 
-int GetIDOfEnteredRoom(struct Room* curRoom, char* entry)
+int IsValidOutboundConnections(struct Room* curRoom, char* entry)
 {
     int i;
 
     for (i = 0; i < curRoom->numConnections; i++) {
-        printf("Comparing %s with %s returns %i\n", curRoom->outboundConnections[i]->name, entry, strcmp(curRoom->outboundConnections[i]->name, entry) );
+        //printf("Comparing %s with %s returns %i\n", curRoom->outboundConnections[i]->name, entry, strcmp(curRoom->outboundConnections[i]->name, entry) );
 
         if (strcmp(curRoom->outboundConnections[i]->name, entry) == 0)
         {
-            return i;
+            return 1;
+        }
+    }
+
+    // If its made it this far, no rooms matched, so return 0.
+    return 0;
+}
+
+
+
+/******************************************************************************
+Name: GetEnteredRoomRef
+Desc: Returns pointer of the room that matches the user entry.
+******************************************************************************/ 
+struct Room* GetEnteredRoomRef(struct Room* rooms, char* entry)
+{
+    int i;
+
+    for (i = 0; i < NUM_ROOMS; i++) {
+        
+        if (strcmp(rooms[i].name, entry) == 0)
+        {
+            return &rooms[i];
         }
     }
 
     // If its made it this far, no rooms matched, so return -1.
-    return -1;
+    exit(-1);
+}
+
+
+/******************************************************************************
+Name: AddStepToLog
+Desc: Adds a step to the log
+******************************************************************************/ 
+void AddStepToLog(struct Log* log, struct Room* room){
+
+    // Enter room into step log
+    log->stepLog[log->numLogs] = room;
+
+    // Increment numLogs (until limit reached)
+    if (log->numLogs < MAX_LOG_ENTRIES - 1) {
+        log->numLogs++;
+    }
+
+}
+
+
+/******************************************************************************
+Name: PrintStepLog
+Desc: Prints out the log names
+******************************************************************************/ 
+void PrintStepLog(struct Log* log) {
+
+    int i;
+
+    // For each log entry, pring room name
+    for (i = 0; i < log->numLogs; i++) {
+        printf("%s\n", log->stepLog[i]->name);
+    }
+
+
+
 }
