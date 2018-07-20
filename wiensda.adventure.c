@@ -9,10 +9,12 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <dirent.h>
 
 #define MAX_ROOM_NAME_LENGTH 8
 #define NUM_POSSIBLE_ROOM_NAMES 10
@@ -49,6 +51,11 @@ int CanConnect(struct Room* room);
 void MakeRoomFile(struct Room* room, char* dir);
 void FreeRoomMem(struct Room* rooms);
 
+
+
+void GetNewestRoomDirName(char* dirName);
+void ReadInRoomDataFromFiles(struct Room* rooms, char* dirName);
+
 struct Room* GetStartRoom(struct Room* rooms);
 void PrintCurrentRoom(struct Room* room);
 char* GetWhereToFromUser();
@@ -62,9 +69,30 @@ int main()
     int i, j, k;
     char dirName[32];
 
+
+    // Adventure variables
+    char newestRoomDirName[256];
+
+
+
     // Declare log file
     struct Log stepLog;
     stepLog.numLogs = 0;
+
+
+
+    GetNewestRoomDirName( newestRoomDirName);
+    printf("Newest room dir found is: %s\n", newestRoomDirName);
+
+
+
+
+
+
+
+
+
+
 
 
     // Declare and set up (hardcode) 10 room names
@@ -143,14 +171,14 @@ int main()
 
 
     // Testing: Print is graph full
-    //printf("Graph Fullness: %i\n", IsGraphFull(rooms));
+    // printf("Graph Fullness: %i\n", IsGraphFull(rooms));
 
 
 
 
 
 
-
+/*  No adventure for now...
 
     // Initialize currentRoom at Start Room
     struct Room* curRoom;
@@ -206,6 +234,8 @@ int main()
     // Print Step summary
     printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", numberOfSteps);
     PrintStepLog(&stepLog);
+
+*/
 
     // Clean up rooms
     FreeRoomMem(rooms);
@@ -686,3 +716,92 @@ void PrintStepLog(struct Log* log) {
 
 
 }
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+/// File extraction work (should be moved higher later)
+
+
+/******************************************************************************
+Name: GetNewestRoomDirName
+Desc: Returns the name of the newest rooms directory in the current directory.
+Reference: http://web.engr.oregonstate.edu/~brewsteb/THCodeRepository/readDirectory.c
+******************************************************************************/
+void GetNewestRoomDirName(char* dirName)
+{
+    int newestDirTime = -1; // Modified timestamp of newest subdir examined
+    char targetDirPrefix[32] = "wiensda.rooms."; // Prefix we're looking for
+    char newestDirName[256]; // Holds the name of the newest dir that contains prefix
+    memset(newestDirName, '\0', sizeof(newestDirName));
+
+    DIR* dirToCheck; // Holds the directory we're starting in
+    struct dirent *fileInDir; // Holds the current subdir of the starting dir
+    struct stat dirAttributes; // Holds information we've gained about subdir
+
+    dirToCheck = opendir("."); // Open up the directory this program was run in
+
+    if (dirToCheck > 0) // Make sure the current directory could be opened
+    {
+    while ((fileInDir = readdir(dirToCheck)) != NULL) // Check each entry in dir
+    {
+        if (strstr(fileInDir->d_name, targetDirPrefix) != NULL) // If entry has prefix
+        {
+        printf("Found the prefix: %s\n", fileInDir->d_name);
+        stat(fileInDir->d_name, &dirAttributes); // Get attributes of the entry
+
+        if ((int)dirAttributes.st_mtime > newestDirTime) // If this time is bigger
+        {
+            newestDirTime = (int)dirAttributes.st_mtime;
+            memset(newestDirName, '\0', sizeof(newestDirName));
+            strcpy(newestDirName, fileInDir->d_name);
+            printf("Newer subdir: %s, new time: %d\n",
+                    fileInDir->d_name, newestDirTime);
+        }
+        }
+    }
+    }
+
+    closedir(dirToCheck); // Close the directory we opened
+
+    printf("Newest entry found is: %s\n", newestDirName);
+
+    strcpy(dirName, newestDirName);
+
+    return;
+
+}
+
+
+
+
+/******************************************************************************
+Name: ReadInRoomDataFromFiles
+Desc: Reads in the data for the rooms from each file found in the directory. 
+******************************************************************************/
+void ReadInRoomDataFromFiles(struct Room* rooms, char* dirName)
+{
+    ;
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
